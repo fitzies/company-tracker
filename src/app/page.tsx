@@ -1,5 +1,5 @@
-const Page = ({ params }: { params: { slug: string } }) => {
-  return <></>;
+const Page = () => {
+  return <>Hello, put /1 on the url</>;
 };
 
 export default Page;

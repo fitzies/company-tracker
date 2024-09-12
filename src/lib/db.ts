@@ -42,7 +42,7 @@ async function getMcStatuses(
         type: status.type,
         startDate: status.startDate,
         endDate: status.endDate,
-        remarks: status.remarks ?? "",
+        remarks: status.remarks ? status.remarks : "",
       })),
   }));
 
@@ -88,7 +88,7 @@ async function getStatuses(companyId: number): Promise<RecruitWithStatuses[]> {
         type: status.type,
         startDate: status.startDate,
         endDate: status.endDate,
-        remarks: status.remarks ?? "",
+        remarks: status.remarks ? status.remarks : "",
       })),
   }));
 
@@ -133,7 +133,7 @@ async function getStatusesByType(
         type: status.type,
         startDate: status.startDate,
         endDate: status.endDate,
-        remarks: status.remarks ?? "",
+        remarks: status.remarks ? status.remarks : "",
       })),
   }));
 

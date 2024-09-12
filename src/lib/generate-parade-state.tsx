@@ -116,7 +116,7 @@ ${onReportSick
 };
 
 export const generateParadeState = async (data: FormData) => {
-  const companyId = parseInt(data.get("companyId")?.toString()!);
+  const companyId = parseInt(data.get("companyId")!.toString()!);
 
   const onMc = await getMcStatuses(companyId);
   const onStatus = await getStatuses(companyId);
