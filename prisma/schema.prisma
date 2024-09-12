@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model Company {
+  id    Int     @id @default(autoincrement())
+  name  String @unique
+  recruits Recruit[]
+}
+
+model Recruit {
+  id       String   @id
+  name     String
+  platoon  Int
+  section  Int
+  bed      Int
+  companyId Int
+  company  Company @relation(fields: [companyId], references: [id])
+  statuses Status[]
+}
+
+model Status {
+  id         Int      @id @default(autoincrement())
+  type       String
+  startDate  DateTime
+  endDate    DateTime
+  recruitId  String   // Changed to String to match Recruit's id type
+  recruit    Recruit  @relation(fields: [recruitId], references: [id])
+  remarks String?
+}
