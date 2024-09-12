@@ -70,7 +70,7 @@ ${onStatus
         })
         .join("\n"); // Join status strings with newline
 
-      return `${onPlusOne.length + (index + 1)}. ${recruit.id} ${
+      return `${onStatus.length + (index + 1)}. ${recruit.id} ${
         recruit.name
       }\n${statusStrings}`;
     })
