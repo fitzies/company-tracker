@@ -4,8 +4,9 @@ import { generateParadeState } from "@/lib/generate-parade-state";
 import { Button } from "@/components/ui/button";
 import { Company } from "@prisma/client";
 import { useState } from "react";
+import ParadeDialog from "./parade-dialog";
 
-const ParadeStateClipboard = ({ company }: { company: Company }) => {
+const ParadeState = ({ company }: { company: Company }) => {
   const [paradeState, setParadeState] = useState<string>();
   return (
     <div>
@@ -22,7 +23,8 @@ const ParadeStateClipboard = ({ company }: { company: Company }) => {
             value={company.id}
             className="hidden"
           />
-          <Button variant={"default"}>Generate Parade State</Button>
+          {/* <Button variant={"default"}>Generate Parade State</Button> */}
+          <ParadeDialog paradeState={paradeState ?? ""} />
         </form>
         <form action="">
           <input
@@ -34,12 +36,8 @@ const ParadeStateClipboard = ({ company }: { company: Company }) => {
           <Button variant={"secondary"}>Add Status</Button>
         </form>
       </div>
-      <textarea
-        className="text-white bg-transparent lg:w-[50vw] w-screen h-screen "
-        value={paradeState}
-      />
     </div>
   );
 };
 
-export default ParadeStateClipboard;
+export default ParadeState;
