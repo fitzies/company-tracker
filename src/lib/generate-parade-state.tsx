@@ -1,6 +1,11 @@
 "use server";
 
-import { getStatuses, getMcStatuses, getStatusesByType } from "./db";
+import {
+  getStatuses,
+  getMcStatuses,
+  getStatusesByType,
+  getPlusOneStatuses,
+} from "./db";
 import prisma from "./prisma";
 import { convertToMilitaryDate, getDaysBetweenDates } from "./utils";
 
@@ -11,7 +16,8 @@ const paradeState = (
   onStatus: RecruitWithStatuses[],
   onOther: RecruitWithStatuses[],
   onPhysio: RecruitWithStatuses[],
-  onReportSick: RecruitWithStatuses[]
+  onReportSick: RecruitWithStatuses[],
+  onPlusOne: RecruitWithStatuses[]
 ) => {
   return `
 *Viper Last Parade State ${convertToMilitaryDate(new Date())}*
@@ -24,7 +30,7 @@ ${onMc
   .map((recruit) => {
     const statusStrings = recruit.statuses
       .map((status) => {
-        return `• ${getDaysBetweenDates(
+        return `\t• ${getDaysBetweenDates(
           status.startDate,
           status.endDate
         )} DAY ${status.type} (${convertToMilitaryDate(
@@ -42,25 +48,38 @@ ${onStatus
   .map((recruit) => {
     const statusStrings = recruit.statuses
       .map((status) => {
-        return `• ${getDaysBetweenDates(
+        return `\t• ${getDaysBetweenDates(
           status.startDate,
           status.endDate
-        )} DAY ${status.type} (${convertToMilitaryDate(
-          status.startDate
-        )} - ${convertToMilitaryDate(status.endDate)})`;
+        )} DAY ${
+          status.type === "Custom Status" ? status.remarks : status.type
+        } (${convertToMilitaryDate(status.startDate)} - ${convertToMilitaryDate(
+          status.endDate
+        )})`;
       })
       .join("\n"); // Join status strings with newline
 
     return `${recruit.id} ${recruit.name}\n${statusStrings}`;
   })
-  .join("\n\n")}
+  .join("\n\n")} \n
+  ${onPlusOne
+    .map((recruit) => {
+      const statusStrings = recruit.statuses
+        .map((status) => {
+          return `\t•  ${status.type} ${status.remarks}`;
+        })
+        .join("\n"); // Join status strings with newline
+
+      return `${recruit.id} ${recruit.name}\n${statusStrings}`;
+    })
+    .join("\n\n")}
 
 *Other (${onOther.length}):*
 ${onOther
   .map((recruit) => {
     const statusStrings = recruit.statuses
       .map((status) => {
-        return `• ${getDaysBetweenDates(
+        return `\t• ${getDaysBetweenDates(
           status.startDate,
           status.endDate
         )} DAY ${status.remarks} (${convertToMilitaryDate(
@@ -78,7 +97,7 @@ ${onPhysio
   .map((recruit) => {
     const statusStrings = recruit.statuses
       .map((status) => {
-        return `• ${getDaysBetweenDates(
+        return `\t• ${getDaysBetweenDates(
           status.startDate,
           status.endDate
         )} DAY ${status.type} (${convertToMilitaryDate(
@@ -96,7 +115,7 @@ ${onReportSick
   .map((recruit) => {
     const statusStrings = recruit.statuses
       .map((status) => {
-        return `• ${getDaysBetweenDates(
+        return `\t• ${getDaysBetweenDates(
           status.startDate,
           status.endDate
         )} DAY ${status.type} (${convertToMilitaryDate(
@@ -123,6 +142,7 @@ export const generateParadeState = async (data: FormData) => {
   const onOther = await getStatusesByType(companyId, "Other");
   const onPhysio = await getStatusesByType(companyId, "Physio");
   const onReportSick = await getStatusesByType(companyId, "Report Sick");
+  const onPlusOne = await getPlusOneStatuses(companyId);
 
   const totalStrength = (
     await prisma.recruit.findMany({ where: { companyId } })
@@ -137,7 +157,8 @@ export const generateParadeState = async (data: FormData) => {
     onStatus,
     onOther,
     onPhysio,
-    onReportSick
+    onReportSick,
+    onPlusOne
   );
 
   console.log(res);

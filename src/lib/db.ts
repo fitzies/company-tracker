@@ -140,4 +140,103 @@ async function getStatusesByType(
   return result;
 }
 
-export { getCompany, getMcStatuses, getStatuses, getStatusesByType };
+async function getPlusOneStatuses(
+  companyId: number
+): Promise<RecruitWithStatuses[]> {
+  const today = new Date();
+  const yesterday = new Date();
+  const twoDaysAgo = new Date();
+
+  // Normalize dates to the start of the day
+  today.setHours(0, 0, 0, 0);
+  yesterday.setDate(today.getDate() - 1);
+  yesterday.setHours(0, 0, 0, 0);
+  twoDaysAgo.setDate(today.getDate() - 2);
+  twoDaysAgo.setHours(0, 0, 0, 0);
+
+  // Debugging: Print out normalized dates
+  console.log("Today:", today.toISOString());
+  console.log("Yesterday:", yesterday.toISOString());
+  console.log("Two Days Ago:", twoDaysAgo.toISOString());
+
+  // Query recruits with statuses where type is "LD" or "MC"
+  const recruits = await prisma.recruit.findMany({
+    where: {
+      companyId,
+      statuses: {
+        some: {
+          type: {
+            in: ["LD", "MC"], // Include only statuses with these types
+          },
+          endDate: {
+            gte: twoDaysAgo, // Include statuses with endDate >= twoDaysAgo
+            lt: today, // Exclude statuses with endDate on or after today
+          },
+        },
+      },
+    },
+    include: {
+      statuses: true,
+    },
+  });
+
+  // Debugging: Print out raw recruits data
+  console.log("Raw recruits data:", recruits);
+
+  // Return filtered recruits and statuses with adjusted remarks
+  const result: RecruitWithStatuses[] = recruits.map((recruit) => ({
+    id: recruit.id,
+    name: recruit.name,
+    statuses: recruit.statuses
+      .filter((status) => {
+        const statusEndDate = new Date(status.endDate);
+        statusEndDate.setHours(0, 0, 0, 0);
+
+        // Debugging: Print out status endDate and remarks calculation
+        console.log("Status endDate:", statusEndDate.toISOString());
+
+        return (
+          ["LD", "MC"].includes(status.type) && // Ensure type is LD or MC
+          statusEndDate >= twoDaysAgo && // Include statuses ending on or after twoDaysAgo
+          statusEndDate < today // Exclude statuses ending on or after today
+        );
+      })
+      .map((status) => {
+        const statusEndDate = new Date(status.endDate);
+        statusEndDate.setHours(0, 0, 0, 0);
+
+        let remarks = "";
+        if (statusEndDate.getTime() === yesterday.getTime()) {
+          remarks = "+ 1";
+        } else if (statusEndDate.getTime() === twoDaysAgo.getTime()) {
+          remarks = "+ 2";
+        }
+
+        // Debugging: Print out status endDate and calculated remarks
+        console.log(
+          "Status endDate:",
+          statusEndDate.toISOString(),
+          "Remarks:",
+          remarks
+        );
+
+        return {
+          id: status.id,
+          type: status.type,
+          startDate: status.startDate,
+          endDate: status.endDate,
+          remarks,
+        };
+      }),
+  }));
+
+  return result;
+}
+
+export {
+  getCompany,
+  getMcStatuses,
+  getStatuses,
+  getStatusesByType,
+  getPlusOneStatuses,
+};

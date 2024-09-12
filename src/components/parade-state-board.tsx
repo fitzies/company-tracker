@@ -35,7 +35,7 @@ const ParadeStateClipboard = ({ company }: { company: Company }) => {
         </form>
       </div>
       <textarea
-        className="text-white bg-transparent lg:w-[50vw] w-screen h-screen lg:overflow-y-hidden"
+        className="text-white bg-transparent lg:w-[50vw] w-screen h-screen "
         value={paradeState}
       />
     </div>
