@@ -27,7 +27,7 @@ const paradeState = (
 
 *MC (${onMc.length}):*
 ${onMc
-  .map((recruit) => {
+  .map((recruit, index) => {
     const statusStrings = recruit.statuses
       .map((status) => {
         return `\t• ${getDaysBetweenDates(
@@ -39,13 +39,13 @@ ${onMc
       })
       .join("\n"); // Join status strings with newline
 
-    return `${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
   })
   .join("\n\n")}
 
-*Statuses (${onStatus.length}):*
+*Statuses (${onStatus.length + onPlusOne.length}):*
 ${onStatus
-  .map((recruit) => {
+  .map((recruit, index) => {
     const statusStrings = recruit.statuses
       .map((status) => {
         return `\t• ${getDaysBetweenDates(
@@ -59,24 +59,26 @@ ${onStatus
       })
       .join("\n"); // Join status strings with newline
 
-    return `${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
   })
   .join("\n\n")} \n
   ${onPlusOne
-    .map((recruit) => {
+    .map((recruit, index) => {
       const statusStrings = recruit.statuses
         .map((status) => {
           return `\t•  ${status.type} ${status.remarks}`;
         })
         .join("\n"); // Join status strings with newline
 
-      return `${recruit.id} ${recruit.name}\n${statusStrings}`;
+      return `${onPlusOne.length + (index + 1)}. ${recruit.id} ${
+        recruit.name
+      }\n${statusStrings}`;
     })
     .join("\n\n")}
 
 *Other (${onOther.length}):*
 ${onOther
-  .map((recruit) => {
+  .map((recruit, index) => {
     const statusStrings = recruit.statuses
       .map((status) => {
         return `\t• ${getDaysBetweenDates(
@@ -88,13 +90,13 @@ ${onOther
       })
       .join("\n"); // Join status strings with newline
 
-    return `${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
   })
   .join("\n\n")}
 
 *Physio (${onPhysio.length}):*
 ${onPhysio
-  .map((recruit) => {
+  .map((recruit, index) => {
     const statusStrings = recruit.statuses
       .map((status) => {
         return `\t• ${getDaysBetweenDates(
@@ -106,13 +108,13 @@ ${onPhysio
       })
       .join("\n"); // Join status strings with newline
 
-    return `${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
   })
   .join("\n\n")}
 
 *Reporting Sick (${onReportSick.length}):*
 ${onReportSick
-  .map((recruit) => {
+  .map((recruit, index) => {
     const statusStrings = recruit.statuses
       .map((status) => {
         return `\t• ${getDaysBetweenDates(
@@ -124,7 +126,7 @@ ${onReportSick
       })
       .join("\n"); // Join status strings with newline
 
-    return `${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
   })
   .join("\n\n")}
 
