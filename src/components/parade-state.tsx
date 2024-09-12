@@ -7,7 +7,9 @@ import { useState } from "react";
 import ParadeDialog from "./parade-dialog";
 
 const ParadeState = ({ company }: { company: Company }) => {
-  const [paradeState, setParadeState] = useState<string>();
+  const [paradeState, setParadeState] = useState<string>(
+    "Generating parade state..."
+  );
   return (
     <div>
       <div className="flex gap-4 justify-center items-center">
