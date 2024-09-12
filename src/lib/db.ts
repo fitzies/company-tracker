@@ -233,10 +233,60 @@ async function getPlusOneStatuses(
   return result;
 }
 
+// FOR COMMANDERS
+
+async function getCommanderStatusByType(
+  companyId: number,
+  statusType: string[]
+): Promise<RecruitWithStatuses[]> {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  // Query recruits with statuses where type matches the provided statusType
+  const commanders = await prisma.commander.findMany({
+    where: {
+      companyId,
+      statuses: {
+        some: {
+          type: { in: statusType }, // Include only statuses of the provided type
+          endDate: {
+            gt: yesterday, // Include statuses with endDate greater than or equal to today
+          },
+        },
+      },
+    },
+    include: {
+      statuses: true,
+    },
+  });
+
+  // Filter statuses to include only those with the provided type and endDate >= today
+  const result: RecruitWithStatuses[] = commanders.map((commander) => ({
+    id: commander.id,
+    name: commander.name,
+    statuses: commander.statuses
+      .filter(
+        (status) =>
+          statusType.includes(status.type) && // Check if status.type is in statusType array
+          status.endDate > yesterday
+      )
+      .map((status) => ({
+        id: status.id,
+        type: status.type,
+        startDate: status.startDate,
+        endDate: status.endDate,
+        remarks: status.remarks ? status.remarks : "",
+      })),
+  }));
+
+  return result;
+}
+
 export {
   getCompany,
   getMcStatuses,
   getStatuses,
   getStatusesByType,
   getPlusOneStatuses,
+  getCommanderStatusByType,
 };

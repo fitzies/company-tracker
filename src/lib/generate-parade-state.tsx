@@ -5,6 +5,7 @@ import {
   getMcStatuses,
   getStatusesByType,
   getPlusOneStatuses,
+  getCommanderStatusByType,
 } from "./db";
 import prisma from "./prisma";
 import { convertToMilitaryDate, getDaysBetweenDates } from "./utils";
@@ -17,7 +18,12 @@ const paradeState = (
   onOther: RecruitWithStatuses[],
   onPhysio: RecruitWithStatuses[],
   onReportSick: RecruitWithStatuses[],
-  onPlusOne: RecruitWithStatuses[]
+  onPlusOne: RecruitWithStatuses[],
+  commanderOnStatus: RecruitWithStatuses[],
+  commanderOnMC: RecruitWithStatuses[],
+  commanderOnOther: RecruitWithStatuses[],
+  totalCommanderStrength: number,
+  currentCommanderStrength: number
 ) => {
   return `
 *Viper Last Parade State ${convertToMilitaryDate(new Date())}*
@@ -39,7 +45,9 @@ ${onMc
       })
       .join("\n"); // Join status strings with newline
 
-    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id.substring(1)} ${
+      recruit.name
+    }\n${statusStrings}`;
   })
   .join("\n\n")}
 
@@ -59,22 +67,25 @@ ${onStatus
       })
       .join("\n"); // Join status strings with newline
 
-    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id.substring(1)} ${
+      recruit.name
+    }\n${statusStrings}`;
   })
-  .join("\n\n")} \n
-  ${onPlusOne
-    .map((recruit, index) => {
-      const statusStrings = recruit.statuses
-        .map((status) => {
-          return `\t•  ${status.type} ${status.remarks}`;
-        })
-        .join("\n"); // Join status strings with newline
+  .join("\n\n")}
 
-      return `${onStatus.length + (index + 1)}. ${recruit.id} ${
-        recruit.name
-      }\n${statusStrings}`;
-    })
-    .join("\n\n")}
+${onPlusOne
+  .map((recruit, index) => {
+    const statusStrings = recruit.statuses
+      .map((status) => {
+        return `\t• ${status.type} ${status.remarks}`;
+      })
+      .join("\n"); // Join status strings with newline
+
+    return `${onStatus.length + (index + 1)}. ${recruit.id.substring(1)} ${
+      recruit.name
+    }\n${statusStrings}`;
+  })
+  .join("\n\n")}
 
 *Other (${onOther.length}):*
 ${onOther
@@ -90,7 +101,9 @@ ${onOther
       })
       .join("\n"); // Join status strings with newline
 
-    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id.substring(1)} ${
+      recruit.name
+    }\n${statusStrings}`;
   })
   .join("\n\n")}
 
@@ -108,7 +121,9 @@ ${onPhysio
       })
       .join("\n"); // Join status strings with newline
 
-    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id.substring(1)} ${
+      recruit.name
+    }\n${statusStrings}`;
   })
   .join("\n\n")}
 
@@ -126,13 +141,66 @@ ${onReportSick
       })
       .join("\n"); // Join status strings with newline
 
-    return `${index + 1}. ${recruit.id} ${recruit.name}\n${statusStrings}`;
+    return `${index + 1}. ${recruit.id.substring(1)} ${
+      recruit.name
+    }\n${statusStrings}`;
   })
   .join("\n\n")}
 
-*Commanders Total: 36*
-*Commanders Present: 29*
+*Commanders Total: ${totalCommanderStrength}*
+*Commanders Present: ${currentCommanderStrength}*
+${commanderOnStatus
+  .map((commander, index) => {
+    const statusStrings = commander.statuses
+      .map((status) => {
+        return `\t• ${getDaysBetweenDates(
+          status.startDate,
+          status.endDate
+        )} DAY ${status.type} (${convertToMilitaryDate(
+          status.startDate
+        )} - ${convertToMilitaryDate(status.endDate)})`;
+      })
+      .join("\n"); // Join status strings with newline
 
+    return `${index + 1}. ${commander.name}\n${statusStrings}`;
+  })
+  .join("\n\n")}
+${commanderOnMC
+  .map((commander, index) => {
+    const statusStrings = commander.statuses
+      .map((status) => {
+        return `\t• ${getDaysBetweenDates(
+          status.startDate,
+          status.endDate
+        )} DAY ${status.type} (${convertToMilitaryDate(
+          status.startDate
+        )} - ${convertToMilitaryDate(status.endDate)})`;
+      })
+      .join("\n"); // Join status strings with newline
+
+    return `${commanderOnStatus.length + (index + 1)}. ${
+      commander.name
+    }\n${statusStrings}`;
+  })
+  .join("\n\n")}
+${commanderOnOther
+  .map((commander, index) => {
+    const statusStrings = commander.statuses
+      .map((status) => {
+        return `\t• ${getDaysBetweenDates(
+          status.startDate,
+          status.endDate
+        )} DAY ${status.remarks} (${convertToMilitaryDate(
+          status.startDate
+        )} - ${convertToMilitaryDate(status.endDate)})`;
+      })
+      .join("\n"); // Join status strings with newline
+
+    return `${commanderOnStatus.length + commanderOnMC.length + (index + 1)}. ${
+      commander.name
+    }\n${statusStrings}`;
+  })
+  .join("\n\n")}
 `;
 };
 
@@ -146,11 +214,25 @@ export const generateParadeState = async (data: FormData) => {
   const onReportSick = await getStatusesByType(companyId, "Report Sick");
   const onPlusOne = await getPlusOneStatuses(companyId);
 
+  const commanderOnStatus = await getCommanderStatusByType(companyId, [
+    "LD",
+    "Custom Status",
+  ]);
+  const commanderOnMC = await getCommanderStatusByType(companyId, ["MC"]);
+  const commanderOnOther = await getCommanderStatusByType(companyId, ["Other"]);
+
   const totalStrength = (
     await prisma.recruit.findMany({ where: { companyId } })
   ).length;
 
   const currentStrength = totalStrength - (onMc.length + onOther.length);
+
+  const totalCommanderStrength = (
+    await prisma.commander.findMany({ where: { companyId } })
+  ).length;
+
+  const currentCommanderStrength =
+    totalCommanderStrength - (commanderOnMC.length + commanderOnOther.length);
 
   const res = paradeState(
     totalStrength,
@@ -160,7 +242,12 @@ export const generateParadeState = async (data: FormData) => {
     onOther,
     onPhysio,
     onReportSick,
-    onPlusOne
+    onPlusOne,
+    commanderOnStatus,
+    commanderOnMC,
+    commanderOnOther,
+    totalCommanderStrength,
+    currentCommanderStrength
   );
 
   console.log(res);

@@ -16,28 +16,46 @@ datasource db {
 }
 
 model Company {
-  id    Int     @id @default(autoincrement())
-  name  String @unique
-  recruits Recruit[]
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  recruits  Recruit[]
+  commanders Commander[]
 }
 
 model Recruit {
-  id       String   @id
-  name     String
-  platoon  Int
-  section  Int
-  bed      Int
+  id        String     @id
+  name      String
+  platoon   Int
+  section   Int
+  bed       Int
   companyId Int
-  company  Company @relation(fields: [companyId], references: [id])
-  statuses Status[]
+  company   Company    @relation(fields: [companyId], references: [id])
+  statuses  Status[]   @relation("RecruitStatuses")
+}
+
+model Commander {
+  id        String     @id @default(uuid())
+  rank      String
+  name      String
+  statuses  Status[]   @relation("CommanderStatuses")
+  companyId Int 
+  company Company @relation(fields: [companyId], references: [id])
 }
 
 model Status {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   type       String
   startDate  DateTime
   endDate    DateTime
-  recruitId  String   // Changed to String to match Recruit's id type
-  recruit    Recruit  @relation(fields: [recruitId], references: [id])
-  remarks String?
+  remarks    String?
+  
+  recruitId  String?
+  recruit    Recruit?  @relation("RecruitStatuses", fields: [recruitId], references: [id])
+  
+  commanderId String?
+  commander   Commander? @relation("CommanderStatuses", fields: [commanderId], references: [id])
+  
+  // This allows you to query the `status` for either `Recruit` or `Commander`
+  // and ensures that only one of them is set.
+  @@unique([recruitId, commanderId])
 }
