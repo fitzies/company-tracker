@@ -26,7 +26,7 @@ const paradeState = (
   currentCommanderStrength: number
 ) => {
   return `
-*Viper Last Parade State ${convertToMilitaryDate(new Date())}*
+*Viper First Parade State ${convertToMilitaryDate(new Date())}*
 
 *Total Recruit Strength: ${totalStrength}*
 *Current Recruit Strength: ${currentStrength}*
